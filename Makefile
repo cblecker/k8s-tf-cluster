@@ -1,5 +1,5 @@
 IMAGENAME=k8s-tf-runner
-RUNARGS=-v "${PWD}:/tf-project" -v "${HOME}/.config/gcloud:/root/.config/gcloud"
+RUNARGS=-v "${PWD}:/tf-project" -v "${HOME}/.terraformrc:/root/.terraformrc" -v "${HOME}/.config/gcloud:/root/.config/gcloud"
 WHAT=plan
 
 default: build

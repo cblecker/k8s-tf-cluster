@@ -1,5 +1,5 @@
-# alpine:3.8 as of November 9, 2018
-FROM alpine@sha256:621c2f39f8133acb8e64023a94dbdf0d5ca81896102b9e57c0dc184cadaf5528 as base
+# alpine:3.9 as of June 12, 2019
+FROM alpine@sha256:769fddc7cc2f0a1c35abb2f91432e8beecf83916c421420e6a6da9f8975464b6 as base
 
 # Download base APK packages
 RUN apk --no-cache add \
@@ -15,10 +15,10 @@ RUN apk --no-cache add \
 FROM base as installer
 
 # Terraform version
-ENV TERRAFORM_VERSION=0.11.10 TERRAFORM_SHA256SUM=43543a0e56e31b0952ea3623521917e060f2718ab06fe2b2d506cfaa14d54527
+ENV TERRAFORM_VERSION=0.12.1 TERRAFORM_SHA256SUM=c9a30d3e3abf751b3b3e323897e9c7cb411d5c4bb7473a3284a2a2b4b89f93ed
 
 # Google Cloud SDK version
-ENV GOOGLE_CLOUD_SDK_VERSION=224.0.0 GOOGLE_CLOUD_SDK_SHA256SUM=0a85de5c35c562f5d602ad20f567d45a214e91e5570ae95a93ced8361fa6d021
+ENV GOOGLE_CLOUD_SDK_VERSION=250.0.0 GOOGLE_CLOUD_SDK_SHA256SUM=fe59b988c6a8a40ae98a3b9d0ea98b98e55e5061e8cec14d71e93b7d198c133e
 
 # Download Terraform and put it's hash in the SUMS file
 RUN curl https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip > terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
@@ -48,11 +48,8 @@ COPY --from=installer /google-cloud-sdk /google-cloud-sdk
 # Disable Terraform CLI input by default
 ENV TF_INPUT 0
 
-# Automatically upgrade providers on init
-ENV TF_CLI_ARGS_init "-upgrade"
-
 # Expose volumes
-VOLUME ["/root/.config/gcloud", "/tf-project"]
+VOLUME ["/root/.terraformrc", "/root/.config/gcloud", "/tf-project"]
 
 WORKDIR /tf-project
 
