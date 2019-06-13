@@ -3,16 +3,15 @@ This file defines the k8s services GKE cluster
 */
 
 locals {
-  target_gke_version = "1.10.7-gke.9"
+  target_gke_version = "1.13.6-gke.6"
 }
 
 resource "google_container_cluster" "cluster" {
   name               = "k8s-services-cluster"
-  project            = "${data.google_project.project.id}"
-  provider           = "google-beta"
-  region             = "${var.region}"
+  project            = data.google_project.project.id
+  location           = "us-central1"
   initial_node_count = 1
-  min_master_version = "${local.target_gke_version}"
+  min_master_version = local.target_gke_version
 
   // Disable local and certificate auth
   master_auth {
@@ -26,7 +25,6 @@ resource "google_container_cluster" "cluster" {
 
   // Enable or disable cluster features
   enable_kubernetes_alpha = false
-  enable_tpu              = false
   enable_legacy_abac      = false
 
   // Removes the default node pool, so we can custom create them as separate objects
@@ -44,7 +42,8 @@ resource "google_container_cluster" "cluster" {
   }
 
   // Restrict master to Google IP space; use Cloud Shell to access
-  master_authorized_networks_config {}
+  master_authorized_networks_config {
+  }
 
   // GKE clusters are critical objects and should not be destroyed.
   lifecycle {
@@ -54,13 +53,12 @@ resource "google_container_cluster" "cluster" {
 
 resource "google_container_node_pool" "pool-1" {
   name_prefix = "pool-1-"
-  project     = "${data.google_project.project.id}"
-  provider    = "google-beta"
-  region      = "${var.region}"
-  cluster     = "${google_container_cluster.cluster.name}"
+  project     = data.google_project.project.id
+  location    = google_container_cluster.cluster.location
+  cluster     = google_container_cluster.cluster.name
 
   initial_node_count = 1
-  version            = "${local.target_gke_version}"
+  version            = local.target_gke_version
 
   management {
     auto_repair  = true
