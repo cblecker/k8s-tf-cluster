@@ -71,7 +71,7 @@ resource "google_container_node_pool" "pool-1" {
   }
 
   node_config {
-    machine_type = "n1-standard-4"
+    machine_type = "n1-standard-8"
     oauth_scopes = ["compute-rw", "storage-ro", "logging-write", "monitoring"]
   }
 
