@@ -5,7 +5,7 @@ This file defines the k8s services GKE cluster
 resource "google_container_cluster" "cluster" {
   provider = google-beta
 
-  name               = "k8s-services-cluster"
+  name               = var.cluster_name
   project            = data.google_project.project.id
   location           = data.google_container_engine_versions.us-central1.location
   min_master_version = data.google_container_engine_versions.us-central1.latest_master_version
