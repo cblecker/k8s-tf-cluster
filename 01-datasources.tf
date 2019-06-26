@@ -3,7 +3,6 @@ This file defines the data sources for the GCP project
 */
 
 data "google_project" "project" {
-  // should match the name of the terraform workspace
   project_id = var.project
 }
 

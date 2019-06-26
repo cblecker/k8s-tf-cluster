@@ -90,11 +90,4 @@ resource "google_container_node_pool" "pool-1" {
   lifecycle {
     create_before_destroy = true
   }
-
-  // Set longer timeouts, as provisioning a node pool can take a while
-  timeouts {
-    create = "30m"
-    update = "30m"
-    delete = "30m"
-  }
 }
