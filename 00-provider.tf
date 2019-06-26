@@ -12,6 +12,7 @@ provider "google-beta" {
 
 terraform {
   required_version = ">= 0.12"
+
   backend "remote" {
     hostname     = "app.terraform.io"
     organization = "k8s-infra"
