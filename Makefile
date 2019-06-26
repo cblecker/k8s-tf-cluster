@@ -12,7 +12,7 @@ build:
 
 .PHONY: push
 push: build
-	docker push $(REGISTRY)/$(IMAGE):$(TAG)
+	docker push $(REGISTRY)/$(IMAGE):$(TAG) $(REGISTRY)/$(IMAGE):latest
 
 .PHONY: run
 run:
