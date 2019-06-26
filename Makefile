@@ -1,16 +1,23 @@
-IMAGENAME=k8s-tf-runner
-RUNARGS=-v "${PWD}:/tf-project" -v "${HOME}/.terraformrc:/root/.terraformrc" -v "${HOME}/.config/gcloud:/root/.config/gcloud"
+REGISTRY=quay.io/cblecker
+IMAGE=k8s-tf-runner
+TAG=$(shell cat image/VERSION)
+RUNARGS=-v "${PWD}:/tf-project" -v "${HOME}/.terraformrc:/.terraformrc:ro" -v "${HOME}/.config/gcloud/application_default_credentials.json:/credentials.json:ro"
 WHAT=plan
 
-default: build
+default: run
 
+.PHONY: build
 build:
-	docker build -t $(IMAGENAME) image/.
+	docker build --pull -t $(REGISTRY)/$(IMAGE):$(TAG) image/.
 
+.PHONY: push
+push: build
+	docker push $(REGISTRY)/$(IMAGE):$(TAG)
+
+.PHONY: run
 run:
-	docker run $(RUNARGS) $(IMAGENAME) $(WHAT)
+	docker run $(RUNARGS) $(REGISTRY)/$(IMAGE):$(TAG) $(WHAT)
 
+.PHONY: run-interactive
 run-interactive:
-	docker run -it --rm -e TF_INPUT=1 $(RUNARGS) $(IMAGENAME) $(WHAT)
-
-.PHONY: build run run-interactive
+	docker run -it --rm -e TF_INPUT=1 $(RUNARGS) $(REGISTRY)/$(IMAGE):$(TAG) $(WHAT)
