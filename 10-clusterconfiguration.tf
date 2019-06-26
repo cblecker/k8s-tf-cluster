@@ -1,7 +1,51 @@
 /*
-This file defines the k8s services GKE cluster
+This file defines:
+- GCP Service Account for nodes
+- GKE cluster configuration
+- Node pool configurations
 */
 
+// Create SA for nodes
+resource "google_service_account" "cluster_node_sa" {
+  project      = data.google_project.project.id
+  account_id   = "sa-${var.cluster_name}"
+  display_name = "Service Account for ${var.cluster_name}"
+}
+
+// Add roles for SA
+resource "google_project_iam_member" "cluster_node_sa_logging" {
+  project = data.google_project.project.id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.cluster_node_sa.email}"
+}
+resource "google_project_iam_member" "cluster_node_sa_monitoring_viewer" {
+  project = data.google_project.project.id
+  role    = "roles/monitoring.viewer"
+  member  = "serviceAccount:${google_service_account.cluster_node_sa.email}"
+}
+resource "google_project_iam_member" "cluster_node_sa_monitoring_metricwriter" {
+  project = data.google_project.project.id
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${google_service_account.cluster_node_sa.email}"
+}
+
+resource "google_bigquery_dataset" "usage_metering" {
+  dataset_id  = "usage_metering"
+  project     = data.google_project.project.id
+  description = "GKE Usage Metering for ${var.cluster_name}"
+  location    = "US"
+
+  access {
+    role          = "OWNER"
+    special_group = "projectOwners"
+  }
+  access {
+    role          = "WRITER"
+    user_by_email = "${google_service_account.cluster_node_sa.email}"
+  }
+}
+
+// Create GKE cluster, but with no node pools. Node pools can be provisioned below
 resource "google_container_cluster" "cluster" {
   provider = google-beta
 
@@ -42,10 +86,18 @@ resource "google_container_cluster" "cluster" {
   master_authorized_networks_config {
   }
 
-  // GKE clusters are critical objects and should not be destroyed
-  lifecycle {
-    prevent_destroy = true
+  // Enable GKE Usage Metering
+  resource_usage_export_config {
+    enable_network_egress_metering = true
+    bigquery_destination {
+      dataset_id = google_bigquery_dataset.usage_metering.dataset_id
+    }
   }
+
+  // GKE clusters are critical objects and should not be destroyed
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 resource "google_container_node_pool" "pool-1" {
@@ -72,17 +124,11 @@ resource "google_container_node_pool" "pool-1" {
     max_node_count = 20
   }
 
-  // Set machine type, and standard oauth scopes
+  // Set machine type, and enable all oauth scopes tied to the service account
   node_config {
-    machine_type = "n1-standard-4"
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring",
-      "https://www.googleapis.com/auth/service.management.readonly",
-      "https://www.googleapis.com/auth/servicecontrol",
-      "https://www.googleapis.com/auth/trace.append"
-    ]
+    machine_type    = "n1-standard-4"
+    service_account = google_service_account.cluster_node_sa.email
+    oauth_scopes    = ["https://www.googleapis.com/auth/cloud-platform"]
   }
 
   // If we need to destroy the node pool, create the new one before destroying

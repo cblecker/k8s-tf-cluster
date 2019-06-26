@@ -20,30 +20,30 @@ terraform {
   }
 
   required_providers {
-    google = "~> 2.9"
-    google-beta = "~> 2.9"
+    google      = "~> 2.9"
+    google-beta = "~> 2.9.2"
   }
 }
 
 variable "cluster_name" {
-  type = string
-  description = <<EOF
+  type        = string
+  description = <<EOT
 Name of the GKE cluster to create
-EOF
+EOT
 }
 
 variable "project" {
-  type        = string
-  description = <<EOF
+  type = string
+  description = <<EOT
 The name of the GCP project to create the cluster in
-EOF
+EOT
 }
 
 variable "region" {
   type        = string
   default     = "us-central1"
-  description = <<EOF
+  description = <<EOT
 GCP region to create resources in
 See https://cloud.google.com/compute/docs/regions-zones/ for valid values
-EOF
+EOT
 }
