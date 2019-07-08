@@ -20,8 +20,8 @@ terraform {
   }
 
   required_providers {
-    google      = "~> 2.9"
-    google-beta = "~> 2.9.2"
+    google      = "~> 2.10"
+    google-beta = "~> 2.10"
   }
 }
 
